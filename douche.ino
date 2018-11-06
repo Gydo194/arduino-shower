@@ -17,7 +17,8 @@ byte temp = 0x00;
 #define INC_THRES 2
 #define LO_THRES 2
 
-byte fanstate;
+byte fanstate = 0;
+int mem = 0;
 
 #define STATE_LO    0x01
 #define STATE_MED   0x02
@@ -30,6 +31,12 @@ byte fanstate;
 #define LCD_ROWS 4
 #define LCD_COLS 20
 #define LCD_I2C_ADDR 0x27
+
+/*
+Libraries used:
+LiquidCrystal_I2C
+Adafruit_Si7021
+*/
 
 LiquidCrystal_I2C lcd(LCD_I2C_ADDR, LCD_COLS, LCD_ROWS);
 Adafruit_Si7021 sensor = Adafruit_Si7021();
@@ -61,7 +68,7 @@ void setup()
   {
     Serial.println(F("Sensor error"));
     lcd.clear();
-    lcd.print(F("Error 1"));
+    lcd.print(F("ERROR: Sensor"));
     while(1) ; //stop
   }
 }
@@ -111,7 +118,7 @@ void fan_lo()
 
 void test_states()
 {
-  Serial.println(F("test"));
+  //Serial.println(F("test"));
   if((rv_current > (rv_check + INC_THRES)) && (fanstate & ~STATE_HI))
   {
     rv_start = rv_check;
@@ -174,43 +181,57 @@ void print_state()
   lcd.setCursor(13,2);
   
   lcd.print(F("M:"));
-  lcd.print(free_mem());
+  lcd.print(mem);
 
 }
 
+void serial_dump()
+{
+  Serial.print(F("RV Actual: "));
+  Serial.print(rv_current);
+  Serial.print(' ');
+  
+  Serial.print(F("RV Start:"));
+  Serial.print(rv_start);
+  Serial.print(' ');
+  
+  Serial.print(F("RV Delta: "));
+  Serial.print(rv_delta);
+  Serial.print(' ');
+  
+  Serial.print(F("RV Max: "));
+  Serial.print(rv_max);
+  Serial.print(' ');
+  
+  Serial.print(F("Fan: "));
+  if(fanstate & STATE_LO) Serial.print(F("Lo"));
+  if(fanstate & STATE_MED) Serial.print(F("Mid"));
+  if(fanstate & STATE_HI) Serial.print(F("Hi"));
+  Serial.print(' ');
+  
+  Serial.print(F("Temp: "));
+  Serial.print(temp);
+  Serial.print(' ');
+  
+  Serial.print(F("Heap Memory: "));
+  Serial.print(mem);
+  Serial.print(F(" bytes free"));
+  Serial.println();
+}
 
 
 void loop()
 { 
-  /*
-  print_state();
-  lcd.setCursor(0,1);
-  lcd.print(F("Sampling..."));
-  rv_check = sensor.readHumidity();
-  delay(CHECK_DELAY);
-  rv_current = sensor.readHumidity();
-  lcd.setCursor(0,1);
-  //lcd.clearLine(1);
-  //lcd.print(F("Processing.."));
-  //lcd.clear();
-  test_states();
-  print_state();
-  lcd.setCursor(0,1);
-  lcd.print(F("Done"));
-  */
   rv_current = sensor.readHumidity();
   temp = sensor.readTemperature();
-  
-
-  //lcd.setCursor(0,1); //next line
-  //lcd.print(F("Done"));
+  mem = free_mem(); //test heap memory
   
   test_states();
   
   //lcd.clear();
   print_state();
- // lcd.setCursor(0,1);
-  //lcd.print(F("Sampling..."));
+  serial_dump();
+  
   rv_check = rv_current;
   delay(CHECK_DELAY);
 }
