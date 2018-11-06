@@ -6,7 +6,7 @@
 
 #define DEBUG 1
 
-#define CHECK_DELAY 30000//15000
+#define CHECK_DELAY 40000//15000
 
 byte rv_current = 0x60;
 byte rv_check   = 0x60;
