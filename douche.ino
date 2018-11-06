@@ -136,39 +136,33 @@ void print_state()
   lcd.clear();
   lcd.setCursor(0,0);
   
-  lcd.print(F("Fan:"));
-  if(fanstate & STATE_LO) lcd.print(F("Low"));
-  if(fanstate & STATE_MED) lcd.print(F("Mid"));
-  if(fanstate & STATE_HI) lcd.print(F("High"));
-  
-  lcd.print(F(" RV:"));
+  lcd.print(F("RV Actual:"));
   lcd.print(rv_current);
-  
-  lcd.print(F(" Tmp:"));
-  lcd.print(temp);
-  
   lcd.setCursor(0,1);
-
-  lcd.print(F("MaxRV:"));
-  lcd.print(rv_max);
-
-  lcd.print(F(" DeltaRV:"));
-  lcd.print(rv_delta);
   
+  lcd.print(F("RV Start :"));
+  lcd.print(rv_start);
   lcd.setCursor(0,2);
   
-  lcd.print(F("StartRV:"));
-  lcd.print(rv_start);
-
-
+  lcd.print(F("RV Delta :"));
+  lcd.print(rv_delta);
+  lcd.setCursor(0,3);
   
- // lcd.setCursor(0,1);
+  lcd.print(F("RV Max   :"));
+  lcd.print(rv_max);
+  lcd.setCursor(13,0);
   
-
-  #if DEBUG
-  lcd.print(F(" Vorige:"));
-  lcd.print(rv_check);
-  #endif
+  lcd.print(F("Fan:"));
+  if(fanstate & STATE_LO) lcd.print(F("Lo"));
+  if(fanstate & STATE_MED) lcd.print(F("Mid"));
+  if(fanstate & STATE_HI) lcd.print(F("Hi"));
+  lcd.setCursor(13,1);
+  
+  lcd.print(F("Temp:"));
+  lcd.print(temp);
+  lcd.setCursor(13,2);
+  
+  lcd.print('I');
 
 }
 
