@@ -2,11 +2,9 @@
 #include <LiquidCrystal_I2C.h>
 #include <Adafruit_Si7021.h>
 
+#define DEBUG 1
 
 #define CHECK_DELAY 30000//15000
-
-LiquidCrystal_I2C lcd(0x27,16,2);
-Adafruit_Si7021 sensor = Adafruit_Si7021();
 
 byte rv_current = 0x60;
 byte rv_check   = 0x60;
@@ -29,10 +27,17 @@ byte fanstate;
 #define RELAY_MED 3
 #define RELAY_HI 4
 
+#define LCD_ROWS 4
+#define LCD_COLS 20
+#define LCD_I2C_ADDR 0x27
+
+LiquidCrystal_I2C lcd(LCD_I2C_ADDR, LCD_COLS, LCD_ROWS);
+Adafruit_Si7021 sensor = Adafruit_Si7021();
+
 void setup()
 {
   Serial.begin(9600);
-  if(!sensor.begin()) Serial.println(F("Sensor error"));
+  
   lcd.init();
   lcd.backlight();
   
@@ -41,6 +46,13 @@ void setup()
   rv_current = sensor.readHumidity();
   rv_max = rv_current;
   rv_check = rv_current;
+  if(!sensor.begin())
+  {
+    Serial.println(F("Sensor error"));
+    lcd.clear();
+    lcd.print(F("Error 1"));
+    while(1) ; //stop
+  }
 }
 
 
@@ -124,29 +136,40 @@ void print_state()
   lcd.clear();
   lcd.setCursor(0,0);
   
-  if(fanstate & STATE_LO) lcd.print('L');
-  if(fanstate & STATE_MED) lcd.print('M');
-  if(fanstate & STATE_HI) lcd.print('H');
+  lcd.print(F("Fan:"));
+  if(fanstate & STATE_LO) lcd.print(F("Low"));
+  if(fanstate & STATE_MED) lcd.print(F("Mid"));
+  if(fanstate & STATE_HI) lcd.print(F("High"));
   
-  lcd.print(F(" C:"));
+  lcd.print(F(" RV:"));
   lcd.print(rv_current);
-
-  lcd.print(F(" S:"));
-  lcd.print(rv_start);
-
-  lcd.print(F(" M:"));
-  lcd.print(rv_max);
+  
+  lcd.print(F(" Tmp:"));
+  lcd.print(temp);
   
   lcd.setCursor(0,1);
-  
-  lcd.print(F("D:"));
+
+  lcd.print(F("MaxRV:"));
+  lcd.print(rv_max);
+
+  lcd.print(F(" DeltaRV:"));
   lcd.print(rv_delta);
   
-  lcd.print(F(" E:"));
-  lcd.print(rv_check);
+  lcd.setCursor(0,2);
   
-  lcd.print(F(" T:"));
-  lcd.print(temp);
+  lcd.print(F("StartRV:"));
+  lcd.print(rv_start);
+
+
+  
+ // lcd.setCursor(0,1);
+  
+
+  #if DEBUG
+  lcd.print(F(" Vorige:"));
+  lcd.print(rv_check);
+  #endif
+
 }
 
 
