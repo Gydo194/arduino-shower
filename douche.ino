@@ -34,6 +34,17 @@ byte fanstate;
 LiquidCrystal_I2C lcd(LCD_I2C_ADDR, LCD_COLS, LCD_ROWS);
 Adafruit_Si7021 sensor = Adafruit_Si7021();
 
+//TEST
+int free_mem()
+{
+  int hsize = 2048;
+  byte *buf;
+  while((buf = (byte *) malloc(--hsize)) == 0);
+  free(buf);
+  return hsize;
+}
+//END TEST
+
 void setup()
 {
   Serial.begin(9600);
@@ -162,7 +173,8 @@ void print_state()
   lcd.print(temp);
   lcd.setCursor(13,2);
   
-  lcd.print('I');
+  lcd.print(F("M:"));
+  lcd.print(free_mem());
 
 }
 
