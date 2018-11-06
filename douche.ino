@@ -2,6 +2,8 @@
 #include <LiquidCrystal_I2C.h>
 #include <Adafruit_Si7021.h>
 
+#include "MemoryFree.h"
+
 #define DEBUG 1
 
 #define CHECK_DELAY 30000//15000
@@ -32,6 +34,7 @@ int mem = 0;
 #define LCD_COLS 20
 #define LCD_I2C_ADDR 0x27
 
+
 /*
 Libraries used:
 LiquidCrystal_I2C
@@ -41,6 +44,7 @@ Adafruit_Si7021
 LiquidCrystal_I2C lcd(LCD_I2C_ADDR, LCD_COLS, LCD_ROWS);
 Adafruit_Si7021 sensor = Adafruit_Si7021();
 
+/*
 //TEST
 int free_mem()
 {
@@ -51,6 +55,7 @@ int free_mem()
   return hsize;
 }
 //END TEST
+*/
 
 void setup()
 {
@@ -62,7 +67,7 @@ void setup()
   fanstate |= STATE_LO;
   
   rv_current = sensor.readHumidity();
-  rv_max = rv_current;
+  //rv_max = rv_current;
   rv_check = rv_current;
   if(!sensor.begin())
   {
@@ -121,11 +126,14 @@ void test_states()
   //Serial.println(F("test"));
   if((rv_current > (rv_check + INC_THRES)) && (fanstate & ~STATE_HI))
   {
-    rv_start = rv_check;
+    if(fanstate & STATE_LO)
+    {
+      rv_start = rv_check;
+    }
     fan_hi();
   }
   
-  if(rv_current > rv_max)
+  if((rv_current > rv_max) && (fanstate & (STATE_MED | STATE_HI)))
   {
     rv_max = rv_current;
     if(rv_start > 0) rv_delta = (rv_max - rv_start);
@@ -213,7 +221,7 @@ void serial_dump()
   Serial.print(temp);
   Serial.print(' ');
   
-  Serial.print(F("Heap Memory: "));
+  Serial.print(F("Memory: "));
   Serial.print(mem);
   Serial.print(F(" bytes free"));
   Serial.println();
@@ -224,7 +232,7 @@ void loop()
 { 
   rv_current = sensor.readHumidity();
   temp = sensor.readTemperature();
-  mem = free_mem(); //test heap memory
+  mem = freeMemory(); //test heap memory
   
   test_states();
   
