@@ -139,18 +139,18 @@ void test_states()
     if(rv_start > 0) rv_delta = (rv_max - rv_start);
   }
   
-  if((rv_current < (rv_max - (rv_delta / 2))) && (fanstate & STATE_HI))
-  {
-    rv_max = rv_current;
-    fan_med();
-  }
-  
   if((rv_current < (rv_start + LO_THRES)) && (fanstate & STATE_MED))
   {
     rv_max = 0;//rv_current;
     fan_lo();
     rv_delta = 0;
     rv_start = 0;
+  }
+  
+  if((rv_current < (rv_max - (rv_delta / 2))) && (fanstate & STATE_HI))
+  {
+    rv_max = rv_current;
+    fan_med();
   }
   
 }
