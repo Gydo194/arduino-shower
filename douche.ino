@@ -7,7 +7,10 @@
 #define DEBUG 1
 
 //sampling delay
-#define CHECK_DELAY 40000//15000
+#define CHECK_DELAY 1000//40000
+
+#define HI_MAX_MILLIS 2400000 //40 min
+#define MED_MAX_MILLIS 2400000 //40 min
 
 //state values
 byte rv_current = 0x60;
@@ -73,7 +76,6 @@ void setup()
     Serial.println(F("Sensor error"));
     lcd.clear();
     lcd.print(F("ERROR: Sensor"));
-    while(1) ; //stop
   }
 }
 
@@ -92,6 +94,7 @@ void fan_hi()
   //UNSET OTHERS
   fanstate &= ~STATE_LO;
   fanstate &= ~STATE_MED;
+  start_millis = millis();
   
   toggle(RELAY_HI);
 }
@@ -103,7 +106,8 @@ void fan_med()
   
   fanstate &= ~STATE_LO;
   fanstate &= ~STATE_HI;
-  
+  start_millis = millis();
+    
   toggle(RELAY_MED);
   
 }
@@ -115,6 +119,7 @@ void fan_lo()
   
   fanstate &= ~STATE_MED;
   fanstate &= ~STATE_HI;
+  start_millis = millis();
   
   toggle(RELAY_LO);
 }
@@ -154,6 +159,22 @@ void test_states()
   
 }
 
+void test_time()
+{
+  //detect wrap of millis timer
+  if(millis() < start_millis)
+  {
+    Serial.println(F("millis wrap detected"));
+    start_millis = 0;
+  }
+  
+  //if in HI state and time expired; go to state MED
+  if((fanstate & STATE_HI) && (start_millis >= HI_MAX_MILLIS)) fan_med();
+
+  //if in MED state and time expired; go to state LO
+  if((fanstate & STATE_MED) && (start_millis >= MED_MAX_MILLIS)) fan_lo();
+}
+
 
 void print_state()
 {
@@ -190,6 +211,9 @@ void print_state()
   lcd.print(F("M:"));
   lcd.print(mem);
 
+  lcd.print(F("E:"));
+  lcd.print(start_millis);
+
 }
 
 void serial_dump()
@@ -223,7 +247,11 @@ void serial_dump()
   Serial.print(F("Memory: "));
   Serial.print(mem);
   Serial.print(F(" bytes free"));
+  
+  Serial.print(F(" E:"));
+  Serial.print(start_millis);
   Serial.println();
+  
 }
 
 
@@ -234,6 +262,7 @@ void loop()
   mem = freeMemory(); //test heap memory
   
   test_states();
+  test_time();
   
   //lcd.clear();
   print_state();
