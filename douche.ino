@@ -22,6 +22,8 @@ byte rv_start   = 0x00;
 //current temperature
 byte temp = 0x00;
 
+byte errn = 0x00;
+
 //switch on and switch off thresholds
 #define INC_THRES 2
 #define LO_THRES 2
@@ -76,6 +78,7 @@ void setup()
     Serial.println(F("Sensor error"));
     lcd.clear();
     lcd.print(F("ERROR: Sensor"));
+    errn = 0x01;
   }
 }
 
@@ -212,7 +215,12 @@ void print_state()
   lcd.print(mem);
 
   lcd.print(F("E:"));
+  lcd.print(errn);
+  
+  lcd.print(F(" A: "));
   lcd.print(start_millis);
+
+  
 
 }
 
@@ -249,7 +257,11 @@ void serial_dump()
   Serial.print(F(" bytes free"));
   
   Serial.print(F(" E:"));
+  Serial.print(errn);
+  
+  Serial.print(F(" A: "));
   Serial.print(start_millis);
+  
   Serial.println();
   
 }
