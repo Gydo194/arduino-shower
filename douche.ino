@@ -22,11 +22,13 @@ byte rv_start   = 0x00;
 //current temperature
 byte temp = 0x00;
 
+//error code
 byte errn = 0x00;
 
 //switch on and switch off thresholds
 #define INC_THRES 2
 #define LO_THRES 2
+#define MED_THRES 2
 
 //current fan state
 byte fanstate = 0;
@@ -130,21 +132,26 @@ void fan_lo()
 
 void test_states()
 {
-  //Serial.println(F("test"));
+  //if current humid is greater than prev humid + threshold and the fan is not in HIGH state
   if((rv_current > (rv_check + INC_THRES)) && (fanstate & ~STATE_HI))
   {
+    //if fan is off, set the start humidity
     if(fanstate & STATE_LO)
     {
       rv_start = rv_check;
     }
+    //turn on the fan
     fan_hi();
   }
-  
+
+  //if current humidity is greater than maximum measured humidity in this period:
   if((rv_current > rv_max) && (fanstate & (STATE_MED | STATE_HI)))
   {
+    //increase the maximum measured humidity to the new maximum
     rv_max = rv_current;
-    if(rv_start > 0) rv_delta = (rv_max - rv_start);
+    if(rv_start > 0) rv_delta = (rv_max - rv_start); //set the delta (absolute difference between maximum and start value)
   }
+
   
   if((rv_current < (rv_start + LO_THRES)) && (fanstate & STATE_MED))
   {
@@ -154,7 +161,7 @@ void test_states()
     rv_start = 0;
   }
   
-  if((rv_current < (rv_max - (rv_delta / 2))) && (fanstate & STATE_HI))
+  if((rv_current < (rv_max - (rv_delta / 2))) && (fanstate & STATE_HI)) //66% instead of 50%
   {
     rv_max = rv_current;
     fan_med();
