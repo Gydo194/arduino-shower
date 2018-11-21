@@ -7,7 +7,7 @@
 #define DEBUG 1
 
 //sampling delay
-#define CHECK_DELAY 1000//40000
+#define CHECK_DELAY 40000
 
 #define HI_MAX_MILLIS 2400000 //40 min
 #define MED_MAX_MILLIS 2400000 //40 min
@@ -179,10 +179,10 @@ void test_time()
   }
   
   //if in HI state and time expired; go to state MED
-  if((fanstate & STATE_HI) && (start_millis >= HI_MAX_MILLIS)) fan_med();
+  if((fanstate & STATE_HI) && ((millis() - start_millis) >= HI_MAX_MILLIS)) fan_med();
 
   //if in MED state and time expired; go to state LO
-  if((fanstate & STATE_MED) && (start_millis >= MED_MAX_MILLIS)) fan_lo();
+  if((fanstate & STATE_MED) && ((millis() - start_millis) >= MED_MAX_MILLIS)) fan_lo();
 }
 
 
@@ -273,9 +273,81 @@ void serial_dump()
   
 }
 
+void process_serial_command(byte command, unsigned char *buf, byte len)
+{
+  switch(command)
+  {
+    case 1:
+      rv_delta = atoi((const char *)buf);
+      break;
+    case 2:
+      fan_hi();
+      break;
+    case 3:
+      fan_med();
+      break;
+    case 4:
+      fan_lo();
+      break;
+    case 5:
+    case 6:
+    default:
+      break;
+    
+  }
+}
+
+void process_serial_input(char input)
+{
+  static byte command = 0;
+  static byte pos = 0;
+  static unsigned char buf[5];
+  switch(input)
+  {
+    case 'd':
+      command = 1;
+      break;
+
+    //fan commands
+    case 'h':
+      command = 2;
+      break;
+    case 'm':
+      command = 3;
+      break;
+    case 'l':
+      command = 4;
+      break;
+      
+    case ';':
+      process_serial_command(command, buf, pos);
+      memset(buf, 0, 5);
+      pos = 0;
+      break;
+    default:
+      if(pos < 5) buf[pos++] = input;
+      break;
+  }
+}
+
+void delay_loop(unsigned long milliseconds)
+{
+  //time counter for loop delay
+  unsigned long thres = millis() + milliseconds;
+  while(millis() < thres)
+  {
+    //loop until threshold value is met
+    if(Serial.available() > 0)
+    {
+      //process Serial events
+      process_serial_input(Serial.read());
+    }
+  }
+}
 
 void loop()
 { 
+
   rv_current = sensor.readHumidity();
   temp = sensor.readTemperature();
   mem = freeMemory(); //test heap memory
@@ -288,5 +360,5 @@ void loop()
   serial_dump();
   
   rv_check = rv_current;
-  delay(CHECK_DELAY);
+  delay_loop(CHECK_DELAY);
 }
