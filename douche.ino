@@ -6,21 +6,31 @@
 
 #define DEBUG 1
 
+//sampling delay
 #define CHECK_DELAY 40000//15000
 
+//state values
 byte rv_current = 0x60;
 byte rv_check   = 0x60;
 byte rv_max     = 0x00;
 byte rv_delta   = 0x00;
 byte rv_start   = 0x00;
 
+//current temperature
 byte temp = 0x00;
 
+//switch on and switch off thresholds
 #define INC_THRES 2
 #define LO_THRES 2
 
+//current fan state
 byte fanstate = 0;
+
+//current free memory
 int mem = 0;
+
+//current state starting time
+unsigned long start_millis = 0;
 
 #define STATE_LO    0x01
 #define STATE_MED   0x02
@@ -37,25 +47,14 @@ int mem = 0;
 
 /*
 Libraries used:
-LiquidCrystal_I2C
-Adafruit_Si7021
+LiquidCrystal_I2C https://github.com/marcoschwartz/LiquidCrystal_I2C
+Adafruit_Si7021 https://github.com/adafruit/Adafruit_Si7021
 */
 
 LiquidCrystal_I2C lcd(LCD_I2C_ADDR, LCD_COLS, LCD_ROWS);
 Adafruit_Si7021 sensor = Adafruit_Si7021();
 
-/*
-//TEST
-int free_mem()
-{
-  int hsize = 2048;
-  byte *buf;
-  while((buf = (byte *) malloc(--hsize)) == 0);
-  free(buf);
-  return hsize;
-}
-//END TEST
-*/
+
 
 void setup()
 {
