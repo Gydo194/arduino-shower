@@ -12,6 +12,8 @@
 #define HI_MAX_MILLIS 1800000UL //30 min
 #define MED_MAX_MILLIS 600000UL //10 min
 
+#define MED_THRES_PERC 0.66 //multiplication factor for switching back from HI to MED
+
 //state values
 byte rv_current = 0x60;
 byte rv_check   = 0x60;
@@ -151,7 +153,7 @@ void test_states()
     rv_start = 0;
   }
   
-  if((rv_current < (rv_max - (rv_delta / 2))) && (fanstate & STATE_HI))
+  if((rv_current < (rv_max - (  (double)rv_delta * (double)MED_THRES_PERC))) && (fanstate & STATE_HI))
   {
     rv_max = rv_current;
     fan_med();
@@ -182,37 +184,39 @@ void print_state()
   lcd.clear();
   lcd.setCursor(0,0);
   
-  lcd.print(F("RV Actual:"));
+  lcd.print(F("Act:"));
   lcd.print(rv_current);
   lcd.setCursor(0,1);
   
-  lcd.print(F("RV Start :"));
+  lcd.print(F("Srt:"));
   lcd.print(rv_start);
   lcd.setCursor(0,2);
   
-  lcd.print(F("RV Delta :"));
+  lcd.print(F("Del:"));
   lcd.print(rv_delta);
   lcd.setCursor(0,3);
   
-  lcd.print(F("RV Max   :"));
+  lcd.print(F("Max:"));
   lcd.print(rv_max);
-  lcd.setCursor(13,0);
+  lcd.setCursor(8,0);
   
   lcd.print(F("Fan:"));
   if(fanstate & STATE_LO) lcd.print(F("Lo"));
   if(fanstate & STATE_MED) lcd.print(F("Mid"));
   if(fanstate & STATE_HI) lcd.print(F("Hi"));
-  lcd.setCursor(13,1);
+  lcd.setCursor(8,1);
   
-  lcd.print(F("Temp:"));
+  lcd.print(F("Tmp:"));
   lcd.print(temp);
-  lcd.setCursor(13,2);
+  lcd.setCursor(8,2);
   
-  lcd.print(F("M:"));
+  lcd.print(F("Mem:"));
   lcd.print(mem);
+  lcd.setCursor(8,3);
 
-  lcd.print(F("E:"));
+  lcd.print(F("Err:"));
   lcd.print(start_millis);
+  lcd.setCursor(8,4);
 
 }
 
